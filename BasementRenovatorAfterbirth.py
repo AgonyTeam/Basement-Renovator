@@ -2330,16 +2330,36 @@ class EntityGroupModel(QAbstractListModel):
 				# Grab the first frame of the anm
 				anmTree = ET.parse(anmPath)
 				spritesheets = anmTree.findall(".Content/Spritesheets/Spritesheet")
+				layers = anmTree.findall(".Content/Layers/Layer")
+				mainlayer = None
+				# Find main layer
+				for layer in layers:
+					if mainlayer is None:
+						if layer.get("Name").lower() == "body" or layer.get("Name").lower() == "main":
+							mainlayer = layer
+							break
 				default = anmTree.find("Animations").get("DefaultAnimation")
-				layer = anmTree.find("./Animations/Animation[@Name='{0}']".format(default)).find(".//LayerAnimation")
-				frame = layer.find("Frame")
-
+				layeranims = anmTree.find("./Animations/Animation[@Name='{0}']".format(default)).findall(".//LayerAnimation")
+				frame = None
+				# Get the frame from the mainlayer if it exists, if it doesn't choose the first layer that has frames
+				for layeranim in layeranims:
+					if mainlayer is not None:
+						if int(layeranim.get("LayerId")) == int(mainlayer.get("Id")):
+							frame = layeranim.find("Frame")
+							break
+					else:
+						if layeranim.find("Frame") is not None:
+							frame = layeranim.find("Frame")
+							break
+						
 				# Here's the anm specs
 				x = int(frame.get("XCrop"))
 				y = int(frame.get("YCrop"))
 				h = int(frame.get("Height"))
 				w = int(frame.get("Width"))
-				image = os.path.join(modPath, "resources", anm2root, spritesheets[int(layer.get("LayerId"))].get("Path"))
+
+				print(name + ": " + os.path.join(modPath, "resources", anm2root, os.path.dirname(anmPath), spritesheets[int(layers[int(layeranim.get("LayerId"))].get("SpritesheetId"))].get("Path")))
+				image = os.path.join(modPath, "resources", anm2root, os.path.dirname(anmPath), spritesheets[int(layers[int(layeranim.get("LayerId"))].get("SpritesheetId"))].get("Path"))
 
 				# Load the Image
 				sourceImage = QImage()

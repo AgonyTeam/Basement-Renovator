@@ -2321,6 +2321,10 @@ class EntityGroupModel(QAbstractListModel):
 				self.groups[name] = EntityGroupItem(name)
 
 			for en in enList:
+				# Skip if it's a Familiar
+				if int(en.get("id")) == 3:
+					continue
+					
 				# Get the Pixmap
 				pixmap = QPixmap()
 
